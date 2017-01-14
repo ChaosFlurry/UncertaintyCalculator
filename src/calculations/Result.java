@@ -1,5 +1,6 @@
-import java.math.BigDecimal;
+package calculations;
 
+@SuppressWarnings("unused")
 public class Result {
     private String equation;
     private double value;

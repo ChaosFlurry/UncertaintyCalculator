@@ -1,8 +1,10 @@
+package calculations;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 
-public class Trig {
+public class TrigOperation {
     public static double toDeg(double rad) {
         return rad / Math.PI * 180.0;
     }
@@ -18,26 +20,21 @@ public class Trig {
         double min = Math.min(Math.sin(rad - uncertainty), Math.sin(rad + uncertainty));
         double max = Math.max(Math.sin(rad - uncertainty), Math.sin(rad + uncertainty));
         double result = Math.sin(rad);
-        if ((rad - uncertainty) < (rad + uncertainty)) {
+        if (Math.sin(rad - uncertainty) < Math.sin(rad + uncertainty)) {
             steps += "sin(" + rad + " ± " + uncertainty + ") = " + "sin(" + rad + ")" +
-                    " ± ((sin(" + rounded.format(rad + uncertainty) + ")" +
-                    " - sin(" + rounded.format(rad - uncertainty) + ")) / 2)\n";
+                    " ± (sin(" + rounded.format(rad + uncertainty) + ")" +
+                    " - sin(" + rounded.format(rad - uncertainty) + ")) / 2\n";
         } else {
             steps += "sin(" + rad + " ± " + uncertainty + ") = " + "sin(" + rad + ")" +
-                    " ± ((sin(" + rounded.format(rad - uncertainty) + ")" +
-                    " - sin(" + rounded.format(rad + uncertainty) + ")) / 2)\n";
+                    " ± (sin(" + rounded.format(rad - uncertainty) + ")" +
+                    " - sin(" + rounded.format(rad + uncertainty) + ")) / 2\n";
         }
-        
-        if (min < 0) {
-            steps += "sin(" + rad + " ± " + uncertainty + ") = " + rounded.format(result) + " ± (" + rounded.format(max) + " + " + rounded.format(-min) + ") / 2\n";
-        } else {
-            steps += "sin(" + rad + " ± " + uncertainty + ") = " + rounded.format(result) + " ± (" + rounded.format(max) + " - " + rounded.format(min) + ") / 2\n";
-        }
-        double finalUncertainty = BigDecimal.valueOf(max).subtract(BigDecimal.valueOf(min)).divide(BigDecimal.valueOf(2), RoundingMode.HALF_UP).abs().doubleValue();
-        steps += "sin(" + rad + " ± " + uncertainty + ") = " + rounded.format(result) + " ± " + rounded.format(finalUncertainty);
+        steps += "sin(" + rad + " ± " + uncertainty + ") = " + rounded.format(result) + " ± (" + rounded.format(max) + " - " + rounded.format(min) + ") / 2\n";
+        double resultUncertainty = BigDecimal.valueOf(max).subtract(BigDecimal.valueOf(min)).divide(BigDecimal.valueOf(2), RoundingMode.HALF_UP).abs().doubleValue();
+        steps += "sin(" + rad + " ± " + uncertainty + ") = " + rounded.format(result) + " ± " + rounded.format(resultUncertainty);
         
         double roundedResult = Double.parseDouble(rounded.format(result));
-        double roundedUncertainty = Double.parseDouble(rounded.format(finalUncertainty));
+        double roundedUncertainty = Double.parseDouble(rounded.format(resultUncertainty));
         return new Result(equation, roundedResult, roundedUncertainty, steps);
     }
     
