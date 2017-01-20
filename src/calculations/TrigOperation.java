@@ -131,11 +131,19 @@ public class TrigOperation {
     }
     
     public static double toDeg(double rad) {
-        return rad / Math.PI * 180.0;
+        return BigDecimal.valueOf(rad)
+                .setScale(1024, BigDecimal.ROUND_HALF_UP)
+                .divide(BigDecimal.valueOf(Math.PI), BigDecimal.ROUND_HALF_UP)
+                .multiply(BigDecimal.valueOf(180))
+                .doubleValue();
     }
     
     public static double toRad(double deg) {
-        return deg / 180.0 * Math.PI;
+        return BigDecimal.valueOf(deg)
+                .setScale(1024, BigDecimal.ROUND_HALF_UP)
+                .divide(BigDecimal.valueOf(180), BigDecimal.ROUND_HALF_UP)
+                .multiply(BigDecimal.valueOf(Math.PI))
+                .doubleValue();
     }
     
     public static Result sin(double rad, double uncertainty) {
