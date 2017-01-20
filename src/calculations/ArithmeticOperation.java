@@ -192,7 +192,7 @@ public class ArithmeticOperation {
         steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
                 "(" + intermittentRounding.format(value1) + " * " + intermittentRounding.format(value2) + ") ± (" + intermittentRounding.format(relUncertainty1) + "% + " + intermittentRounding.format(relUncertainty2) + "%)" + "\n";
         steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
-                intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty1 + relUncertainty2) + "%" + "\n";
+                intermittentRounding.format(result) + " ± " + intermittentRounding.format(BigDecimal.valueOf(relUncertainty1).add(BigDecimal.valueOf(relUncertainty2))) + "%" + "\n";
         steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
                 finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
@@ -228,7 +228,7 @@ public class ArithmeticOperation {
         steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
                 "(" + intermittentRounding.format(value1) + " / " + intermittentRounding.format(value2) + ") ± (" + intermittentRounding.format(relUncertainty1) + "% + " + intermittentRounding.format(relUncertainty2) + "%)" + "\n";
         steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
-                intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty1 + relUncertainty2) + "%" + "\n";
+                intermittentRounding.format(result) + " ± " + intermittentRounding.format(BigDecimal.valueOf(relUncertainty1).add(BigDecimal.valueOf(relUncertainty2))) + "%" + "\n";
         steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
                 finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
@@ -248,6 +248,39 @@ public class ArithmeticOperation {
                 intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
         steps += value + " ± " + uncertainty + " / " + constant + " = " +
                 finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
+        return new Result(equation, result, resultUncertainty, steps);
+    }
+    
+    public Result power(double value, double uncertainty, double power) {
+        String steps = "";
+        String equation = "(" + value + " ± " + uncertainty + ")" + "^" + power;
+        double result = Math.pow(value, power);
+        double relUncertainty = BigDecimal.valueOf(uncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
+        double resultUncertainty = BigDecimal.valueOf(relUncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(power)).doubleValue();
+        
+        steps += "(" + value + " ± " + uncertainty + ")" + "^" + power + " = " +
+                intermittentRounding.format(value) + "^" + intermittentRounding.format(power) + " ± " + intermittentRounding.format(power) + " * " + intermittentRounding.format(relUncertainty) + "%" + "\n";
+        steps += "(" + value + " ± " + uncertainty + ")" + "^" + power + " = " +
+                intermittentRounding.format(result) + " ± " + intermittentRounding.format(BigDecimal.valueOf(relUncertainty).multiply(BigDecimal.valueOf(power))) + "%" + "\n";
+        steps += "(" + value + " ± " + uncertainty + ")" + "^" + power + " = " +
+                finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
+        return new Result(equation, result, resultUncertainty, steps);
+    }
+    
+    public Result root(double value, double uncertainty, double root) {
+        String steps = "";
+        String equation = "(" + value + " ± " + uncertainty + ")" + "^" + "(1/" + root + ")";
+        double result = Math.pow(value, BigDecimal.ONE.setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(root), BigDecimal.ROUND_HALF_UP).doubleValue());
+        double relUncertainty = BigDecimal.valueOf(uncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
+        double resultUncertainty = BigDecimal.valueOf(relUncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.ONE.setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(root), BigDecimal.ROUND_HALF_UP)).doubleValue();
+        
+        steps += "(" + value + " ± " + uncertainty + ")" + "^" + "(1/" + root + ")" + " = " +
+                intermittentRounding.format(value) + "^" + "(" + intermittentRounding.format(1) + "/" + intermittentRounding.format(root) + ")" +
+                " ± " + "(" + intermittentRounding.format(1) + "/" + intermittentRounding.format(root) + ")" + " * " + intermittentRounding.format(relUncertainty) + "%" + "\n";
+        steps += "(" + value + " ± " + uncertainty + ")" + "^" + "(1/" + root + ")" + " = " +
+                intermittentRounding.format(result) + " ± " + intermittentRounding.format(BigDecimal.valueOf(relUncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.ONE.setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(root), BigDecimal.ROUND_HALF_UP))) + "%" + "\n";
+        steps += "(" + value + " ± " + uncertainty + ")" + "^" + "(1/" + root + ")" + " = " +
+                finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
     }
 }
