@@ -60,6 +60,30 @@ public class ArithmeticOperation {
         this.finalRounding = finalRounding;
     }
     
+    public DecimalFormat getIntermittentRounding() {
+        return intermittentRounding;
+    }
+    
+    public DecimalFormat getFinalRounding() {
+        return finalRounding;
+    }
+    
+    public void setIntermittentRounding(DecimalFormat intermittentRounding) {
+        this.intermittentRounding = intermittentRounding;
+    }
+    
+    public void setIntermittentRounding(int decimalPlaces, int minDisplayedDecimalPlaces, boolean scientificNotation) {
+        this.intermittentRounding = decimalFormatGenerator(decimalPlaces, minDisplayedDecimalPlaces, scientificNotation);
+    }
+    
+    public void setFinalRounding(DecimalFormat finalRounding) {
+        this.finalRounding = finalRounding;
+    }
+    
+    public void setFinalRounding(int decimalPlaces, int minDisplayedDecimalPlaces, boolean scientificNotation) {
+        this.finalRounding = decimalFormatGenerator(decimalPlaces, minDisplayedDecimalPlaces, scientificNotation);
+    }
+    
     /**
      * @param decimalPlaces
      * @param minDisplayedDecimalPlaces
@@ -108,27 +132,51 @@ public class ArithmeticOperation {
     public Result add(double value1, double uncertainty1, double value2, double uncertainty2) {
         String steps = "";
         String equation = value1 + " ± " + uncertainty1 + " + " + value2 + " ± " + uncertainty2;
-        double result = BigDecimal.valueOf(value1).add(BigDecimal.valueOf(value2)).doubleValue();
-        double resultUncertainty = BigDecimal.valueOf(uncertainty1).add(BigDecimal.valueOf(uncertainty2)).doubleValue();
+        double result = BigDecimal.valueOf(value1).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(value2)).doubleValue();
+        double resultUncertainty = BigDecimal.valueOf(uncertainty1).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(uncertainty2)).doubleValue();
         
         steps += value1 + " ± " + uncertainty1 + " + " + value2 + " ± " + uncertainty2 + " = " +
-                "(" + value1 + " + " + value2 + ") ± (" + intermittentRounding.format(uncertainty1) + " + " + intermittentRounding.format(uncertainty2) + ")\n";
+                "(" + intermittentRounding.format(value1) + " + " + intermittentRounding.format(value2) + ") ± (" + intermittentRounding.format(uncertainty1) + " + " + intermittentRounding.format(uncertainty2) + ")" + "\n";
         steps += value1 + " ± " + uncertainty1 + " + " + value2 + " ± " + uncertainty2 + " = " +
-                result + " ± " + finalRounding.format(resultUncertainty);
+                finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
+    }
+    
+    public Result add(double value, double uncertainty, double constant) {
+        String steps = "";
+        String equation = value + " ± " + uncertainty + " + " + constant;
+        double result = BigDecimal.valueOf(value).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(constant)).doubleValue();
+        
+        steps += value + " ± " + uncertainty + " + " + constant + " = " +
+                "(" + intermittentRounding.format(value) + " + " + intermittentRounding.format(constant) + ") ± " + intermittentRounding.format(uncertainty) + "\n";
+        steps += value + " ± " + uncertainty + " + " + constant + " = " +
+                finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
+        return new Result(equation, result, uncertainty, steps);
     }
     
     public Result subtract(double value1, double uncertainty1, double value2, double uncertainty2) {
         String steps = "";
         String equation = value1 + " ± " + uncertainty1 + " - " + value2 + " ± " + uncertainty2;
-        double result = BigDecimal.valueOf(value1).add(BigDecimal.valueOf(value2)).doubleValue();
-        double resultUncertainty = BigDecimal.valueOf(uncertainty1).add(BigDecimal.valueOf(uncertainty2)).doubleValue();
+        double result = BigDecimal.valueOf(value1).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(value2)).doubleValue();
+        double resultUncertainty = BigDecimal.valueOf(uncertainty1).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(uncertainty2)).doubleValue();
         
         steps += value1 + " ± " + uncertainty1 + " - " + value2 + " ± " + uncertainty2 + " = " +
-                "(" + value1 + " - " + value2 + ") ± (" + intermittentRounding.format(uncertainty1) + " + " + intermittentRounding.format(uncertainty2) + ")\n";
+                "(" + intermittentRounding.format(value1) + " - " + intermittentRounding.format(value2) + ") ± (" + intermittentRounding.format(uncertainty1) + " + " + intermittentRounding.format(uncertainty2) + ")\n";
         steps += value1 + " ± " + uncertainty1 + " - " + value2 + " ± " + uncertainty2 + " = " +
-                result + " ± " + finalRounding.format(resultUncertainty);
+                finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
+    }
+    
+    public Result subtract(double value, double uncertainty, double constant) {
+        String steps = "";
+        String equation = value + " ± " + uncertainty + " - " + constant;
+        double result = BigDecimal.valueOf(value).setScale(128, BigDecimal.ROUND_HALF_UP).subtract(BigDecimal.valueOf(constant)).doubleValue();
+        
+        steps += value + " ± " + uncertainty + " - " + constant + " = " +
+                "(" + intermittentRounding.format(value) + " - " + intermittentRounding.format(constant) + ") ± " + intermittentRounding.format(uncertainty) + "\n";
+        steps += value + " ± " + uncertainty + " - " + constant + " = " +
+                finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
+        return new Result(equation, result, uncertainty, steps);
     }
     
     public Result multiply(double value1, double uncertainty1, double value2, double uncertainty2) {
@@ -140,13 +188,30 @@ public class ArithmeticOperation {
         double resultUncertainty = BigDecimal.valueOf(relUncertainty1).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(relUncertainty2)).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(result)).doubleValue();
         
         steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
-                value1 + " ± " + intermittentRounding.format(relUncertainty1) + "% * " + value2 + " ± " + intermittentRounding.format(relUncertainty2) + "%\n";
+                intermittentRounding.format(value1) + " ± " + intermittentRounding.format(relUncertainty1) + "% * " + intermittentRounding.format(value2) + " ± " + intermittentRounding.format(relUncertainty2) + "%" + "\n";
         steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
-                "(" + value1 + " * " + value2 + ") ± (" + intermittentRounding.format(relUncertainty1) + "% + " + intermittentRounding.format(relUncertainty2) + "%)\n";
+                "(" + intermittentRounding.format(value1) + " * " + intermittentRounding.format(value2) + ") ± (" + intermittentRounding.format(relUncertainty1) + "% + " + intermittentRounding.format(relUncertainty2) + "%)" + "\n";
         steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
-                result + " ± " + intermittentRounding.format(relUncertainty1 + relUncertainty2) + "%\n";
+                intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty1 + relUncertainty2) + "%" + "\n";
         steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
-                result + " ± " + finalRounding.format(resultUncertainty);
+                finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
+        return new Result(equation, result, resultUncertainty, steps);
+    }
+    
+    public Result multiply(double value, double uncertainty, double constant) {
+        String steps = "";
+        String equation = value + " ± " + uncertainty + " * " + constant;
+        double result = BigDecimal.valueOf(value).setScale(128, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(constant)).doubleValue();
+        double relUncertainty = BigDecimal.valueOf(uncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
+        double resultUncertainty = BigDecimal.valueOf(relUncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(result)).doubleValue();
+    
+        steps += value + " ± " + uncertainty + " * " + constant + " = " +
+                "(" + intermittentRounding.format(value) + " * " + intermittentRounding.format(constant) + ")" +
+                " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
+        steps += value + " ± " + uncertainty + " * " + constant + " = " +
+                intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
+        steps += value + " ± " + uncertainty + " * " + constant + " = " +
+                finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
     }
     
@@ -159,13 +224,30 @@ public class ArithmeticOperation {
         double resultUncertainty = BigDecimal.valueOf(relUncertainty1).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(relUncertainty2)).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(result)).doubleValue();
         
         steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
-                value1 + " ± " + intermittentRounding.format(relUncertainty1) + "% / " + value2 + " ± " + intermittentRounding.format(relUncertainty2) + "%\n";
+                intermittentRounding.format(value1) + " ± " + intermittentRounding.format(relUncertainty1) + "% / " + intermittentRounding.format(value2) + " ± " + intermittentRounding.format(relUncertainty2) + "%" + "\n";
         steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
-                "(" + value1 + " / " + value2 + ") ± (" + intermittentRounding.format(relUncertainty1) + "% + " + intermittentRounding.format(relUncertainty2) + "%)";
+                "(" + intermittentRounding.format(value1) + " / " + intermittentRounding.format(value2) + ") ± (" + intermittentRounding.format(relUncertainty1) + "% + " + intermittentRounding.format(relUncertainty2) + "%)" + "\n";
         steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
-                result + " ± " + intermittentRounding.format(relUncertainty1 + relUncertainty2) + "%";
+                intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty1 + relUncertainty2) + "%" + "\n";
         steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
-                result + " ± " + finalRounding.format(resultUncertainty);
+                finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
+        return new Result(equation, result, resultUncertainty, steps);
+    }
+    
+    public Result divide(double value, double uncertainty, double constant) {
+        String steps = "";
+        String equation = value + " ± " + uncertainty + " / " + constant;
+        double result = BigDecimal.valueOf(value).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(constant), BigDecimal.ROUND_HALF_UP).doubleValue();
+        double relUncertainty = BigDecimal.valueOf(uncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
+        double resultUncertainty = BigDecimal.valueOf(relUncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(result)).doubleValue();
+        
+        steps += value + " ± " + uncertainty + " / " + constant + " = " +
+                "(" + intermittentRounding.format(value) + " / " + intermittentRounding.format(constant) + ")" +
+                " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
+        steps += value + " ± " + uncertainty + " / " + constant + " = " +
+                intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
+        steps += value + " ± " + uncertainty + " / " + constant + " = " +
+                finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
     }
 }
