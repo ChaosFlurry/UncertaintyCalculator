@@ -150,7 +150,7 @@ public class ArithmeticOperation {
         steps += value + " ± " + uncertainty + " + " + constant + " = " +
                 "(" + intermittentRounding.format(value) + " + " + intermittentRounding.format(constant) + ") ± " + intermittentRounding.format(uncertainty) + "\n";
         steps += value + " ± " + uncertainty + " + " + constant + " = " +
-                finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
+                finalRounding.format(result) + " ± " + finalRounding.format(uncertainty) + "\n";
         return new Result(equation, result, uncertainty, steps);
     }
     
@@ -175,79 +175,123 @@ public class ArithmeticOperation {
         steps += value + " ± " + uncertainty + " - " + constant + " = " +
                 "(" + intermittentRounding.format(value) + " - " + intermittentRounding.format(constant) + ") ± " + intermittentRounding.format(uncertainty) + "\n";
         steps += value + " ± " + uncertainty + " - " + constant + " = " +
-                finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
+                finalRounding.format(result) + " ± " + finalRounding.format(uncertainty) + "\n";
         return new Result(equation, result, uncertainty, steps);
     }
     
     public Result multiply(double value1, double uncertainty1, double value2, double uncertainty2) {
+        DecimalFormat inputRounding1 = new DecimalFormat();
+        DecimalFormat inputRounding2 = new DecimalFormat();
+        int decimals1 = BigDecimal.valueOf(uncertainty1).toPlainString().split("\\.")[1].length();
+        int decimals2 = BigDecimal.valueOf(uncertainty2).toPlainString().split("\\.")[1].length();
+        inputRounding1.setMinimumIntegerDigits(1);
+        inputRounding2.setMinimumIntegerDigits(1);
+        inputRounding1.setMinimumFractionDigits(decimals1);
+        inputRounding1.setMaximumFractionDigits(decimals1);
+        inputRounding2.setMinimumFractionDigits(decimals2);
+        inputRounding2.setMaximumFractionDigits(decimals2);
+        
         String steps = "";
-        String equation = value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2;
+        String equation = inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " * " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2);
         double result = BigDecimal.valueOf(value1).multiply(BigDecimal.valueOf(value2)).doubleValue();
         double relUncertainty1 = BigDecimal.valueOf(uncertainty1).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value1), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
         double relUncertainty2 = BigDecimal.valueOf(uncertainty2).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value2), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
         double resultUncertainty = BigDecimal.valueOf(relUncertainty1).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(relUncertainty2)).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(result)).doubleValue();
         
-        steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
+        steps += inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " * " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2) + " = " +
                 intermittentRounding.format(value1) + " ± " + intermittentRounding.format(relUncertainty1) + "% * " + intermittentRounding.format(value2) + " ± " + intermittentRounding.format(relUncertainty2) + "%" + "\n";
-        steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
+        steps += inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " * " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2) + " = " +
                 "(" + intermittentRounding.format(value1) + " * " + intermittentRounding.format(value2) + ") ± (" + intermittentRounding.format(relUncertainty1) + "% + " + intermittentRounding.format(relUncertainty2) + "%)" + "\n";
-        steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
+        steps += inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " * " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2) + " = " +
                 intermittentRounding.format(result) + " ± " + intermittentRounding.format(BigDecimal.valueOf(relUncertainty1).add(BigDecimal.valueOf(relUncertainty2))) + "%" + "\n";
-        steps += value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2 + " = " +
+        steps += inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " * " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2) + " = " +
                 finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
     }
     
     public Result multiply(double value, double uncertainty, double constant) {
+        DecimalFormat inputRounding = new DecimalFormat();
+        int decimals = BigDecimal.valueOf(uncertainty).toPlainString().split("\\.")[1].length();
+        inputRounding.setMinimumIntegerDigits(1);
+        inputRounding.setMinimumFractionDigits(decimals);
+        inputRounding.setMaximumFractionDigits(decimals);
+        
         String steps = "";
-        String equation = value + " ± " + uncertainty + " * " + constant;
+        String equation = inputRounding.format(value) + " ± " + inputRounding.format(uncertainty) + " * " + constant;
         double result = BigDecimal.valueOf(value).setScale(128, BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(constant)).doubleValue();
         double relUncertainty = BigDecimal.valueOf(uncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
         double resultUncertainty = BigDecimal.valueOf(relUncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(result)).doubleValue();
     
-        steps += value + " ± " + uncertainty + " * " + constant + " = " +
+        steps += inputRounding.format(value) + " ± " + inputRounding.format(uncertainty) + " * " + constant + " = " +
                 "(" + intermittentRounding.format(value) + " * " + intermittentRounding.format(constant) + ")" +
                 " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
-        steps += value + " ± " + uncertainty + " * " + constant + " = " +
+        steps += inputRounding.format(value) + " ± " + inputRounding.format(uncertainty) + " * " + constant + " = " +
                 intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
-        steps += value + " ± " + uncertainty + " * " + constant + " = " +
-                finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
+        steps += inputRounding.format(value) + " ± " + inputRounding.format(uncertainty) + " * " + constant + " = " +
+                finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
     }
     
     public Result divide(double value1, double uncertainty1, double value2, double uncertainty2) {
+        DecimalFormat inputRounding1 = new DecimalFormat();
+        DecimalFormat inputRounding2 = new DecimalFormat();
+        int decimals1 = BigDecimal.valueOf(uncertainty1).toPlainString().split("\\.")[1].length();
+        int decimals2 = BigDecimal.valueOf(uncertainty2).toPlainString().split("\\.")[1].length();
+        inputRounding1.setMinimumIntegerDigits(1);
+        inputRounding2.setMinimumIntegerDigits(1);
+        inputRounding1.setMinimumFractionDigits(decimals1);
+        inputRounding1.setMaximumFractionDigits(decimals1);
+        inputRounding2.setMinimumFractionDigits(decimals2);
+        inputRounding2.setMaximumFractionDigits(decimals2);
+        
         String steps = "";
-        String equation = value1 + " ± " + uncertainty1 + " * " + value2 + " ± " + uncertainty2;
+        String equation = inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " / " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2);
         double result = BigDecimal.valueOf(value1).divide(BigDecimal.valueOf(value2), BigDecimal.ROUND_HALF_UP).doubleValue();
         double relUncertainty1 = BigDecimal.valueOf(uncertainty1).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value1), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
         double relUncertainty2 = BigDecimal.valueOf(uncertainty2).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value2), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
         double resultUncertainty = BigDecimal.valueOf(relUncertainty1).setScale(128, BigDecimal.ROUND_HALF_UP).add(BigDecimal.valueOf(relUncertainty2)).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(result)).doubleValue();
         
-        steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
+        steps += inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " / " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2) + " = " +
                 intermittentRounding.format(value1) + " ± " + intermittentRounding.format(relUncertainty1) + "% / " + intermittentRounding.format(value2) + " ± " + intermittentRounding.format(relUncertainty2) + "%" + "\n";
-        steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
+        steps += inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " / " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2) + " = " +
                 "(" + intermittentRounding.format(value1) + " / " + intermittentRounding.format(value2) + ") ± (" + intermittentRounding.format(relUncertainty1) + "% + " + intermittentRounding.format(relUncertainty2) + "%)" + "\n";
-        steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
+        steps += inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " / " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2) + " = " +
                 intermittentRounding.format(result) + " ± " + intermittentRounding.format(BigDecimal.valueOf(relUncertainty1).add(BigDecimal.valueOf(relUncertainty2))) + "%" + "\n";
-        steps += value1 + " ± " + uncertainty1 + " / " + value2 + " ± " + uncertainty2 + " = " +
+        steps += inputRounding1.format(value1) + " ± " + inputRounding1.format(uncertainty1) + " / " +
+                inputRounding2.format(value2) + " ± " + inputRounding2.format(uncertainty2) + " = " +
                 finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
     }
     
     public Result divide(double value, double uncertainty, double constant) {
+        DecimalFormat inputRounding = new DecimalFormat();
+        int decimals = BigDecimal.valueOf(uncertainty).toPlainString().split("\\.")[1].length();
+        inputRounding.setMinimumIntegerDigits(1);
+        inputRounding.setMinimumFractionDigits(decimals);
+        inputRounding.setMaximumFractionDigits(decimals);
+        
         String steps = "";
-        String equation = value + " ± " + uncertainty + " / " + constant;
+        String equation = inputRounding.format(value) + " ± " + inputRounding.format(uncertainty) + " / " + constant;
         double result = BigDecimal.valueOf(value).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(constant), BigDecimal.ROUND_HALF_UP).doubleValue();
         double relUncertainty = BigDecimal.valueOf(uncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(value), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(100)).doubleValue();
         double resultUncertainty = BigDecimal.valueOf(relUncertainty).setScale(128, BigDecimal.ROUND_HALF_UP).divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP).multiply(BigDecimal.valueOf(result)).doubleValue();
         
-        steps += value + " ± " + uncertainty + " / " + constant + " = " +
+        steps += inputRounding.format(value) + " ± " + inputRounding.format(uncertainty) + " / " + constant + " = " +
                 "(" + intermittentRounding.format(value) + " / " + intermittentRounding.format(constant) + ")" +
                 " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
-        steps += value + " ± " + uncertainty + " / " + constant + " = " +
+        steps += inputRounding.format(value) + " ± " + inputRounding.format(uncertainty) + " / " + constant + " = " +
                 intermittentRounding.format(result) + " ± " + intermittentRounding.format(relUncertainty) + "%" + "\n";
-        steps += value + " ± " + uncertainty + " / " + constant + " = " +
-                finalRounding.format(result) + " ±" + finalRounding.format(uncertainty) + "\n";
+        steps += inputRounding.format(value) + " ± " + inputRounding.format(uncertainty) + " / " + constant + " = " +
+                finalRounding.format(result) + " ± " + finalRounding.format(resultUncertainty) + "\n";
         return new Result(equation, result, resultUncertainty, steps);
     }
     
