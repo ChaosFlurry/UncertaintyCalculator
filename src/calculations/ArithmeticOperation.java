@@ -129,6 +129,7 @@ public class ArithmeticOperation {
         return new DecimalFormat(format);
     }
     
+    
     public Result add(double value1, double uncertainty1, double value2, double uncertainty2) {
         String steps = "";
         String equation = value1 + " ± " + uncertainty1 + " + " + value2 + " ± " + uncertainty2;
