@@ -2,6 +2,9 @@ package calculations;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @SuppressWarnings("unused")
 public class ArithmeticOperation {
@@ -129,6 +132,109 @@ public class ArithmeticOperation {
         return new DecimalFormat(format);
     }
     
+    public Result add(Uncertainty x, Uncertainty y) {
+        String equationLayout = "";
+        ArrayList<BigDecimal> equationValues = new ArrayList<>();
+        String stepsLayout = "";
+        ArrayList<BigDecimal> stepValues = new ArrayList<>();
+        
+        BigDecimal answerValue = x.getValue().add(y.getValue());
+        BigDecimal answerUncertainty = x.getAbsUncertainty().add(y.getAbsUncertainty());
+        Uncertainty answer = new Uncertainty(answerValue, answerUncertainty, Uncertainty.ABSOLUTE);
+    
+        equationLayout += "V0 PM U0 + V1 PM U1";
+        equationValues.add(x.getValue());
+        equationValues.add(x.getAbsUncertainty());
+        equationValues.add(y.getValue());
+        equationValues.add(y.getAbsUncertainty());
+        
+        stepsLayout += "V0 PM U0 + V1 PM U1 = V0 + V1 PM U0 + U1";
+        stepsLayout += "V0 PM U0 + V1 PM U1 = V2 PM U2";
+        stepValues.add(x.getValue());
+        stepValues.add(x.getAbsUncertainty());
+        stepValues.add(y.getValue());
+        stepValues.add(y.getAbsUncertainty());
+        stepValues.add(x.getValue().add(y.getValue()));
+        stepValues.add(x.getAbsUncertainty().add(y.getAbsUncertainty()));
+        
+        Map<String, ArrayList<BigDecimal>> equation = new LinkedHashMap<>();
+        equation.put(equationLayout, equationValues);
+        Map<String, ArrayList<BigDecimal>> steps = new LinkedHashMap<>();
+        steps.put(stepsLayout, stepValues);
+        
+        return new Result(answer, equation, steps);
+    }
+    
+    public Result add(ArrayList<Uncertainty> values) {
+        String equationLayout = "";
+        ArrayList<BigDecimal> equationValues = new ArrayList<>();
+        String stepsLayout = "";
+        ArrayList<BigDecimal> stepValues = new ArrayList<>();
+        
+        BigDecimal answerValue = BigDecimal.ZERO;
+        BigDecimal answerUncertainty = BigDecimal.ZERO;
+        for (int i = 0; i < values.size(); i++) {
+            answerValue = answerValue.add(values.get(i).getValue());
+            answerUncertainty = answerUncertainty.add(values.get(i).getAbsUncertainty());
+    
+            equationLayout += "V" + i + " PM " + "U" + i;
+            equationValues.add(values.get(i).getValue());
+            equationValues.add(values.get(i).getAbsUncertainty());
+            
+            /*
+            v1 u1 v2 u2 v3 u3 = v1 v2 v3 u1 u2 u3
+            v1 u1 v2 u2 v3 u3 = va ua
+             */
+        }
+        
+        for (int i = 0; i < values.size(); i++) {
+            if (i == 0) {
+                stepsLayout += " PM ";
+                stepsLayout = "V" + (values.size() - 1) + stepsLayout;
+                stepsLayout += "U" + i;
+            } else {
+                stepsLayout += " + " + "V" + i + " PM " + "U" + i;
+                stepsLayout = "V" + (values.size() - 1 - i) + "+" + stepsLayout;
+                stepsLayout += " + " + "U" + i;
+            }
+            // At the front of the list, add values back to front (Vn, Vn-1, ... V1, V0)
+            stepValues.add(0, values.get(values.size() - 1 - i).getValue());
+            // At the end of the list, add uncertainties in normal order (U0, U1, ... Un-1, Un)
+            stepValues.add(stepValues.size() - 1, values.get(i).getAbsUncertainty());
+            // End result will be a list with elements V0, V1 ... Vn-1, Vn, U0, U1, ... Un-1, Un)
+        }
+        stepsLayout += ""
+        
+        for (int i = 0; i < values.size(); i++) {
+            if (i == 0) {
+                stepsLayout += "V" + i;
+            } else {
+                stepsLayout += " + " + "V" + i;
+            }
+            stepsLayout +=
+            
+            if (i == 0) {
+                stepsLayout += "V" + i + " PM " + "U" + i;
+            } else {
+                stepsLayout += " + " + "V" + i + " PM " + "U" + i;
+            }
+            stepValues.add(values.get(i).getValue());
+            stepValues.add(values.get(i).getAbsUncertainty());
+        }
+        stepsLayout += ""
+        
+        stepsLayout += "V" + (values.size() + 1) + " PM " + "U" + (values.size() + 1);
+        stepValues.add(answerValue);
+        stepValues.add(answerUncertainty);
+        
+        Uncertainty answer = new Uncertainty(answerValue, answerUncertainty, Uncertainty.ABSOLUTE);
+        Map<String, ArrayList<BigDecimal>> equation = new LinkedHashMap<>();
+        equation.put(equationLayout, equationValues);
+        Map<String, ArrayList<BigDecimal>> steps = new LinkedHashMap<>();
+        steps.put(stepsLayout, stepValues);
+    
+        return new Result(answer, equation, steps);
+    }
     
     public Result add(double value1, double uncertainty1, double value2, double uncertainty2) {
         String steps = "";

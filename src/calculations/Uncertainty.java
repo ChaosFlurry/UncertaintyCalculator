@@ -10,6 +10,9 @@ public class Uncertainty {
     private int valueDecimalPrecision;
     private int uncertaintyDecimalPrecision;
     
+    public static String ABSOLUTE = "absolute";
+    public static String RELATIVE = "relative";
+    
     public Uncertainty(String value, String uncertainty, String uncertaintyType) {
         if (uncertaintyType.toLowerCase().equals("absolute") || uncertaintyType.toLowerCase().equals("abs")) {
             this.value = new BigDecimal(value);
@@ -91,19 +94,16 @@ public class Uncertainty {
     public BigDecimal getValue() {
         return value;
     }
-    
     public BigDecimal getAbsUncertainty() {
         return absUncertainty;
     }
-    
-    public BigDecimal getRelUncertainty() {
+    public BigDecimal getRelUncertaintyAsDecimal() {
         return relUncertainty;
     }
-    
+    public BigDecimal getRelUncertaintyAsPercentage() { return relUncertainty.multiply(BigDecimal.valueOf(100)); }
     public int getValueDecimalPrecision() {
         return valueDecimalPrecision;
     }
-    
     public int getUncertaintyDecimalPrecision() {
         return uncertaintyDecimalPrecision;
     }
@@ -111,19 +111,18 @@ public class Uncertainty {
     public void setValue(BigDecimal value) {
         this.value = value;
     }
-    
     public void setAbsUncertainty(BigDecimal absUncertainty) {
         this.absUncertainty = absUncertainty;
     }
-    
-    public void setRelUncertainty(BigDecimal relUncertainty) {
+    public void setRelUncertaintyFromDecimal(BigDecimal relUncertainty) {
         this.relUncertainty = relUncertainty;
     }
-    
+    public void setRelUncertaintyFromPercentage(BigDecimal relUncertainty) {
+        this.relUncertainty = relUncertainty.divide(BigDecimal.valueOf(100), BigDecimal.ROUND_HALF_UP);
+    }
     public void setValueDecimalPrecision(int valueDecimalPrecision) {
         this.valueDecimalPrecision = valueDecimalPrecision;
     }
-    
     public void setUncertaintyDecimalPrecision(int uncertaintyDecimalPrecision) {
         this.uncertaintyDecimalPrecision = uncertaintyDecimalPrecision;
     }
